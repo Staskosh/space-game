@@ -1,43 +1,53 @@
 import asyncio
+import random
 import time
 import curses
 
+TIC_TIMEOUT = 0.1
 
-async def blink(canvas, row, column, symbol='*'):
+
+async def blink(canvas, row, column, symbol):
     while True:
         canvas.addstr(row, column, symbol, curses.A_DIM)
-        await asyncio.sleep(0)
+        for _ in range(10):
+            await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol)
-        await asyncio.sleep(0)
+        for _ in range(3):
+            await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol, curses.A_BOLD)
-        await asyncio.sleep(0)
+        for _ in range(4):
+            await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol)
-        await asyncio.sleep(0)
+        for _ in range(3):
+            await asyncio.sleep(0)
+
+
+def create_stars_parameters(signs, max_y, max_x, stars_number):
+    star_params = []
+    for _ in range(stars_number):
+        generated_x = random.randint(1, max_x - 1)
+        generated_y = random.randint(1, max_y - 1)
+        chosen_sign = random.choice(signs)
+        star_params.append([generated_y, generated_x,  chosen_sign])
+    return star_params
 
 
 def draw(canvas):
-    row, column = (5, 20)
-    first_coroutine = blink(canvas, row, column, symbol='*')
-    second_coroutine = blink(canvas, row=5, column=10, symbol='*')
-    third_coroutine = blink(canvas, row=5, column=15, symbol='*')
-    fourth_coroutine = blink(canvas, row=5, column=5, symbol='*')
-    fifth_coroutine = blink(canvas, row=5, column=0, symbol='*')
-    coroutines = [
-        first_coroutine,
-        second_coroutine,
-        third_coroutine,
-        fourth_coroutine,
-        fifth_coroutine
-    ]
+    stars_number = 50
+    signs = ['+', '*', '.', ':']
+    max_y, max_x = canvas.getmaxyx()
+    star_params = create_stars_parameters(signs, max_y, max_x, stars_number)
+    coroutines = [blink(canvas, row, column, symbol) for row, column, symbol in star_params]
     while True:
         for coroutine in coroutines.copy():
             curses.curs_set(False)
             coroutine.send(None)
             canvas.refresh()
-        time.sleep(1)
+            canvas.border()
+        time.sleep(0.1)
         # canvas.border()
         # canvas.addstr(row, column, '*', curses.A_DIM)
         # canvas.refresh()
@@ -53,7 +63,11 @@ def draw(canvas):
         # time.sleep(0.3)
 
 
-if __name__ == '__main__':
+def main():
     curses.update_lines_cols()
     curses.wrapper(draw)
-    curses.curs_set(False)
+
+
+
+if __name__ == '__main__':
+    main()
