@@ -6,22 +6,52 @@ import curses
 TIC_TIMEOUT = 0.1
 
 
+async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
+    """Display animation of gun shot, direction and speed can be specified."""
+
+    row, column = start_row, start_column
+
+    canvas.addstr(round(row), round(column), '*')
+    await asyncio.sleep(0)
+
+    canvas.addstr(round(row), round(column), 'O')
+    await asyncio.sleep(0)
+    canvas.addstr(round(row), round(column), ' ')
+
+    row += rows_speed
+    column += columns_speed
+
+    symbol = '-' if columns_speed else '|'
+
+    rows, columns = canvas.getmaxyx()
+    max_row, max_column = rows - 1, columns - 1
+
+    curses.beep()
+
+    while 0 < row < max_row and 0 < column < max_column:
+        canvas.addstr(round(row), round(column), symbol)
+        await asyncio.sleep(0)
+        canvas.addstr(round(row), round(column), ' ')
+        row += rows_speed
+        column += columns_speed
+
+
 async def blink(canvas, row, column, symbol):
     while True:
         canvas.addstr(row, column, symbol, curses.A_DIM)
-        for _ in range(10):
+        for _ in range(random.randint(0, 20)):
             await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol)
-        for _ in range(3):
+        for _ in range(random.randint(0, 8)):
             await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol, curses.A_BOLD)
-        for _ in range(4):
+        for _ in range(random.randint(0, 10)):
             await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol)
-        for _ in range(3):
+        for _ in range(random.randint(0, 8)):
             await asyncio.sleep(0)
 
 
@@ -41,26 +71,19 @@ def draw(canvas):
     max_y, max_x = canvas.getmaxyx()
     star_params = create_stars_parameters(signs, max_y, max_x, stars_number)
     coroutines = [blink(canvas, row, column, symbol) for row, column, symbol in star_params]
+    coroutines.append(fire(canvas, start_row=max_y//2, start_column=max_x//2, rows_speed=-0.3, columns_speed=0))
     while True:
-        for coroutine in coroutines.copy():
-            curses.curs_set(False)
-            coroutine.send(None)
-            canvas.refresh()
-            canvas.border()
-        time.sleep(0.1)
-        # canvas.border()
-        # canvas.addstr(row, column, '*', curses.A_DIM)
-        # canvas.refresh()
-        # time.sleep(2)
-        # canvas.refresh()
-        # canvas.addstr(row, column, '*')
-        # time.sleep(0.3)
-        # canvas.refresh()
-        # canvas.addstr(row, column, '*', curses.A_BOLD)
-        # canvas.refresh()
-        # time.sleep(0.5)
-        # canvas.addstr(row, column, '*')
-        # time.sleep(0.3)
+        try:
+            for coroutine in coroutines.copy():
+                curses.curs_set(False)
+                coroutine.send(None)
+                canvas.refresh()
+                canvas.border()
+            time.sleep(0.1)
+        except StopIteration:
+            coroutines.remove(coroutine)
+        if len(coroutines) == 0:
+            break
 
 
 def main():
