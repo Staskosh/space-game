@@ -7,49 +7,23 @@ from itertools import cycle
 
 from dotenv import load_dotenv
 
-from curses_tools import draw_frame
+from curses_tools import draw_frame, read_controls
 
 TIC_TIMEOUT = 0.1
 
 
-async def animate_spaceship(canvas, animations, row, column):
-    for frame in cycle(animations):
-        draw_frame(canvas, row, column, frame)
-        canvas.refresh()
-        time.sleep(0.3)
-        await asyncio.sleep(0)
+async def animate_spaceship(canvas, animations, start_row, start_column):
+    while True:
+        for frame in cycle(animations):
+            changed_row, changed_column, changed_pushed = read_controls(canvas)
+            start_row += changed_row
+            start_column += changed_column
+            draw_frame(canvas, start_row, start_column, frame)
+            canvas.refresh()
+            time.sleep(0.3)
+            await asyncio.sleep(0)
 
-        draw_frame(canvas, row, column, frame, negative=True)
-
-
-async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
-    """Display animation of gun shot, direction and speed can be specified."""
-
-    row, column = start_row, start_column
-
-    canvas.addstr(round(row), round(column), '*')
-    await asyncio.sleep(0)
-
-    canvas.addstr(round(row), round(column), 'O')
-    await asyncio.sleep(0)
-    canvas.addstr(round(row), round(column), ' ')
-
-    row += rows_speed
-    column += columns_speed
-
-    symbol = '-' if columns_speed else '|'
-
-    rows, columns = canvas.getmaxyx()
-    max_row, max_column = rows - 1, columns - 1
-
-    curses.beep()
-
-    while 0 < row < max_row and 0 < column < max_column:
-        canvas.addstr(round(row), round(column), symbol)
-        await asyncio.sleep(0)
-        canvas.addstr(round(row), round(column), ' ')
-        row += rows_speed
-        column += columns_speed
+            draw_frame(canvas, start_row, start_column, frame, negative=True)
 
 
 async def blink(canvas, row, column, symbol):
@@ -95,15 +69,16 @@ def get_animations():
 def draw(canvas):
     stars_number = 50
     signs = ['+', '*', '.', ':']
-    animations = get_animations()
     max_y, max_x = canvas.getmaxyx()
+    animations = get_animations()
     star_params = create_stars_parameters(signs, max_y, max_x, stars_number)
     coroutines = [blink(canvas, row, column, symbol) for row, column, symbol in star_params]
-    # coroutines.append(fire(canvas, start_row=max_y//2, start_column=max_x//2, rows_speed=-0.3, columns_speed=0))
-    coroutines.append(animate_spaceship(canvas, animations, row=max_y//3, column=max_x//2))
+    coroutines.append(animate_spaceship(canvas, animations, start_row=max_y//3, start_column=max_x//2))
     while True:
         try:
             for coroutine in coroutines.copy():
+                canvas.refresh()
+                canvas.nodelay(True)
                 curses.curs_set(False)
                 coroutine.send(None)
                 canvas.refresh()
@@ -119,7 +94,6 @@ def main():
     load_dotenv()
     curses.update_lines_cols()
     curses.wrapper(draw)
-    curses.wrapper(animate_spaceship)
 
 
 if __name__ == '__main__':
