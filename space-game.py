@@ -1,29 +1,38 @@
 import asyncio
+import curses
 import os
 import random
 import time
-import curses
 from itertools import cycle
 
 from dotenv import load_dotenv
 
-from curses_tools import draw_frame, read_controls
+from curses_tools import draw_frame, get_frame_size, read_controls
 
 TIC_TIMEOUT = 0.1
 
 
-async def animate_spaceship(canvas, animations, start_row, start_column):
+async def animate_spaceship(canvas, animations, border, max_row, max_column, row, column):
     while True:
         for frame in cycle(animations):
+            frame_row_numbers, frame_column_numbers = get_frame_size(frame)
             changed_row, changed_column, changed_pushed = read_controls(canvas)
-            start_row += changed_row
-            start_column += changed_column
-            draw_frame(canvas, start_row, start_column, frame)
+
+            if changed_row == -1 and border < row < max_row - border:
+                row += changed_row
+            if changed_row == 1 and row + frame_row_numbers < max_row - border:
+                row += changed_row
+            if changed_column == -1 and border < column < max_column + border:
+                column += changed_column
+            if changed_column == 1 and column + frame_column_numbers < max_column - border:
+                column += changed_column
+
+            draw_frame(canvas, row, column, frame)
             canvas.refresh()
-            time.sleep(0.3)
+            time.sleep(0.03)
             await asyncio.sleep(0)
 
-            draw_frame(canvas, start_row, start_column, frame, negative=True)
+            draw_frame(canvas, row, column, frame, negative=True)
 
 
 async def blink(canvas, row, column, symbol):
@@ -51,7 +60,7 @@ def create_stars_parameters(signs, max_y, max_x, stars_number):
         generated_x = random.randint(1, max_x - 1)
         generated_y = random.randint(1, max_y - 1)
         chosen_sign = random.choice(signs)
-        star_params.append([generated_y, generated_x,  chosen_sign])
+        star_params.append([generated_y, generated_x, chosen_sign])
     return star_params
 
 
@@ -67,22 +76,29 @@ def get_animations():
 
 
 def draw(canvas):
+    border = 1
+    max_row, max_column = canvas.getmaxyx()
     stars_number = 50
     signs = ['+', '*', '.', ':']
-    max_y, max_x = canvas.getmaxyx()
+    star_params = create_stars_parameters(signs, max_row, max_column, stars_number)
+    coroutines = [blink(canvas, row, column, symbol)
+                  for row, column, symbol in star_params]
+
     animations = get_animations()
-    star_params = create_stars_parameters(signs, max_y, max_x, stars_number)
-    coroutines = [blink(canvas, row, column, symbol) for row, column, symbol in star_params]
-    coroutines.append(animate_spaceship(canvas, animations, start_row=max_y//3, start_column=max_x//2))
+    start_row = max_row // 3
+    start_column = max_column // 2
+    coroutines.append(animate_spaceship(
+        canvas, animations, border, max_row, max_column, row=start_row, column=start_column
+    ))
     while True:
         try:
             for coroutine in coroutines.copy():
-                canvas.refresh()
+                canvas.border()
                 canvas.nodelay(True)
+                canvas.refresh()
                 curses.curs_set(False)
                 coroutine.send(None)
                 canvas.refresh()
-                canvas.border()
             time.sleep(TIC_TIMEOUT)
         except StopIteration:
             coroutines.remove(coroutine)
