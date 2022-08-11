@@ -13,26 +13,25 @@ TIC_TIMEOUT = 0.1
 
 
 async def animate_spaceship(canvas, animations, border, max_row, max_column, row, column):
-    while True:
-        for frame in cycle(animations):
-            frame_row_numbers, frame_column_numbers = get_frame_size(frame)
-            changed_row, changed_column, changed_pushed = read_controls(canvas)
+    for frame in cycle(animations):
+        frame_row_numbers, frame_column_numbers = get_frame_size(frame)
+        changed_row, changed_column, changed_pushed = read_controls(canvas)
 
-            if changed_row == -1 and border < row < max_row - border:
-                row += changed_row
-            if changed_row == 1 and row + frame_row_numbers < max_row - border:
-                row += changed_row
-            if changed_column == -1 and border < column < max_column + border:
-                column += changed_column
-            if changed_column == 1 and column + frame_column_numbers < max_column - border:
-                column += changed_column
+        if changed_row == -1 and border < row < max_row - border:
+            row += changed_row
+        if changed_row == 1 and row + frame_row_numbers < max_row - border:
+            row += changed_row
+        if changed_column == -1 and border < column < max_column + border:
+            column += changed_column
+        if changed_column == 1 and column + frame_column_numbers < max_column - border:
+            column += changed_column
 
-            draw_frame(canvas, row, column, frame)
-            canvas.refresh()
-            time.sleep(0.03)
-            await asyncio.sleep(0)
+        draw_frame(canvas, row, column, frame)
+        canvas.refresh()
+        time.sleep(0.03)
+        await asyncio.sleep(0)
 
-            draw_frame(canvas, row, column, frame, negative=True)
+        draw_frame(canvas, row, column, frame, negative=True)
 
 
 async def blink(canvas, row, column, symbol):
@@ -79,7 +78,7 @@ def draw(canvas):
     animations_directory = 'animation_files'
     max_row, max_column = canvas.getmaxyx()
     stars_number = 50
-    signs = ['+', '*', '.', ':']
+    signs = '+*.:'
     star_params = create_stars_parameters(signs, max_row, max_column, stars_number)
     coroutines = [blink(canvas, row, column, symbol)
                   for row, column, symbol in star_params]
