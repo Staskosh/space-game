@@ -76,18 +76,18 @@ def get_animations(animations_directory):
 def draw(canvas):
     border = 1
     animations_directory = 'animation_files'
-    max_row, max_column = canvas.getmaxyx()
+    height, width = canvas.getmaxyx()  # getmaxyx returns the height, width of window
     stars_number = 50
     signs = '+*.:'
-    star_params = create_stars_parameters(signs, max_row, max_column, stars_number)
+    star_params = create_stars_parameters(signs, height, width, stars_number)
     coroutines = [blink(canvas, row, column, symbol)
                   for row, column, symbol in star_params]
 
     animations = get_animations(animations_directory)
-    start_row = max_row // 3
-    start_column = max_column // 2
+    start_row = height // 3
+    start_column = width // 2
     coroutines.append(animate_spaceship(
-        canvas, animations, border, max_row, max_column, row=start_row, column=start_column
+        canvas, animations, border, height, width, row=start_row, column=start_column
     ))
     while True:
         try:
