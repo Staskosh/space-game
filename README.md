@@ -13,11 +13,7 @@
 ```bash
 pip install -r requirements.txt
 ```
-3. Добавить название папки с файлами анимации.
-```python
-ANIMATIONS_FOLDER='тут путь до папки'
-```
-4. Запустите скрипт:
+3. Запустите скрипт:
 ```bash
 python3 space-game.py
 ```

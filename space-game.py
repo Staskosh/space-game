@@ -64,8 +64,7 @@ def create_stars_parameters(signs, max_y, max_x, stars_number):
     return star_params
 
 
-def get_animations():
-    animations_directory = os.getenv('ANIMATIONS_FOLDER')
+def get_animations(animations_directory):
     animations = []
     for file in os.listdir(animations_directory):
         with open(f'{animations_directory}/{file}', 'r', encoding='KOI8-R') as my_file:
@@ -77,6 +76,7 @@ def get_animations():
 
 def draw(canvas):
     border = 1
+    animations_directory = 'animation_files'
     max_row, max_column = canvas.getmaxyx()
     stars_number = 50
     signs = ['+', '*', '.', ':']
@@ -84,7 +84,7 @@ def draw(canvas):
     coroutines = [blink(canvas, row, column, symbol)
                   for row, column, symbol in star_params]
 
-    animations = get_animations()
+    animations = get_animations(animations_directory)
     start_row = max_row // 3
     start_column = max_column // 2
     coroutines.append(animate_spaceship(
