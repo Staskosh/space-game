@@ -27,7 +27,6 @@ async def animate_spaceship(canvas, animations, border, max_row, max_column, row
             column += changed_column
 
         draw_frame(canvas, row, column, frame)
-        canvas.refresh()
         time.sleep(0.03)
         await asyncio.sleep(0)
 
@@ -76,6 +75,8 @@ def get_animations(animations_directory):
 def draw(canvas):
     border = 1
     animations_directory = 'animation_files'
+    curses.curs_set(False)
+    canvas.nodelay(True)
     height, width = canvas.getmaxyx()  # getmaxyx returns the height, width of window
     stars_number = 50
     signs = '+*.:'
@@ -93,14 +94,11 @@ def draw(canvas):
         try:
             for coroutine in coroutines.copy():
                 canvas.border()
-                canvas.nodelay(True)
-                canvas.refresh()
-                curses.curs_set(False)
                 coroutine.send(None)
                 canvas.refresh()
-            time.sleep(TIC_TIMEOUT)
         except StopIteration:
             coroutines.remove(coroutine)
+        time.sleep(TIC_TIMEOUT)
 
 
 def main():
