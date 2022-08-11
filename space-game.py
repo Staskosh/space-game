@@ -64,9 +64,9 @@ def create_stars_parameters(signs, max_y, max_x, stars_number):
 
 def get_animations(animations_directory):
     animations = []
-    for file in os.listdir(animations_directory):
-        with open(f'{animations_directory}/{file}', 'r', encoding='KOI8-R') as my_file:
-            animation = my_file.read()
+    for filename in os.listdir(animations_directory):
+        with open(f'{animations_directory}/{filename}', 'r', encoding='KOI8-R') as file:
+            animation = file.read()
         animations.append(animation)
 
     return animations
