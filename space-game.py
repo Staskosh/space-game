@@ -33,23 +33,32 @@ async def animate_spaceship(canvas, animations, border, max_row, max_column, row
         draw_frame(canvas, row, column, frame, negative=True)
 
 
-async def blink(canvas, row, column, symbol):
+async def count_delay(seconds):
+    for _ in range(int(seconds * 5)):
+        await asyncio.sleep(0)
+
+
+async def blink(canvas, row, column, symbol, offset_tic):
     while True:
-        canvas.addstr(row, column, symbol, curses.A_DIM)
-        for _ in range(random.randint(0, 20)):
-            await asyncio.sleep(0)
+        if offset_tic == 0:
+            canvas.addstr(row, column, symbol, curses.A_DIM)
+            await count_delay(2)
+            offset_tic += 1
 
-        canvas.addstr(row, column, symbol)
-        for _ in range(random.randint(0, 8)):
-            await asyncio.sleep(0)
+        if offset_tic == 1:
+            canvas.addstr(row, column, symbol)
+            await count_delay(0.3)
+            offset_tic += 1
 
-        canvas.addstr(row, column, symbol, curses.A_BOLD)
-        for _ in range(random.randint(0, 10)):
-            await asyncio.sleep(0)
+        if offset_tic == 2:
+            canvas.addstr(row, column, symbol, curses.A_BOLD)
+            await count_delay(0.5)
+            offset_tic += 1
 
-        canvas.addstr(row, column, symbol)
-        for _ in range(random.randint(0, 8)):
-            await asyncio.sleep(0)
+        if offset_tic == 3:
+            canvas.addstr(row, column, symbol)
+            await count_delay(0.3)
+            offset_tic = 0
 
 
 def create_stars_parameters(signs, max_y, max_x, stars_number):
@@ -81,7 +90,7 @@ def draw(canvas):
     stars_number = 50
     signs = '+*.:'
     star_params = create_stars_parameters(signs, height, width, stars_number)
-    coroutines = [blink(canvas, row, column, symbol)
+    coroutines = [blink(canvas, row, column, symbol, random.randint(0, 3))
                   for row, column, symbol in star_params]
 
     animations = get_animations(animations_directory)
