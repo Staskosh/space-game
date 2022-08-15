@@ -12,6 +12,11 @@ from curses_tools import draw_frame, get_frame_size, read_controls
 TIC_TIMEOUT = 0.1
 
 
+async def count_delay(seconds):
+    for _ in range(int(seconds * 10)):
+        await asyncio.sleep(0)
+
+
 async def animate_spaceship(canvas, animations, border, max_row, max_column, row, column):
     for frame in cycle(animations):
         frame_row_numbers, frame_column_numbers = get_frame_size(frame)
@@ -27,15 +32,10 @@ async def animate_spaceship(canvas, animations, border, max_row, max_column, row
             column += changed_column
 
         draw_frame(canvas, row, column, frame)
-        time.sleep(0.03)
-        await asyncio.sleep(0)
+
+        await count_delay(0.3)
 
         draw_frame(canvas, row, column, frame, negative=True)
-
-
-async def count_delay(seconds):
-    for _ in range(int(seconds * 5)):
-        await asyncio.sleep(0)
 
 
 async def blink(canvas, row, column, symbol, offset_tics):
@@ -64,8 +64,8 @@ async def blink(canvas, row, column, symbol, offset_tics):
 def create_stars_parameters(signs, max_y, max_x, stars_number):
     star_params = []
     for _ in range(stars_number):
-        row = random.randint(1, max_x - 1)
-        column = random.randint(1, max_y - 1)
+        row = random.randint(1, max_y - 1)
+        column = random.randint(1, max_x - 1)
         symbol = random.choice(signs)
         star_params.append([row, column, symbol])
     return star_params
