@@ -38,36 +38,36 @@ async def count_delay(seconds):
         await asyncio.sleep(0)
 
 
-async def blink(canvas, row, column, symbol, offset_tic):
+async def blink(canvas, row, column, symbol, offset_tics):
     while True:
-        if offset_tic == 0:
+        if offset_tics == 0:
             canvas.addstr(row, column, symbol, curses.A_DIM)
             await count_delay(2)
-            offset_tic += 1
+            offset_tics += 1
 
-        if offset_tic == 1:
+        if offset_tics == 1:
             canvas.addstr(row, column, symbol)
             await count_delay(0.3)
-            offset_tic += 1
+            offset_tics += 1
 
-        if offset_tic == 2:
+        if offset_tics == 2:
             canvas.addstr(row, column, symbol, curses.A_BOLD)
             await count_delay(0.5)
-            offset_tic += 1
+            offset_tics += 1
 
-        if offset_tic == 3:
+        if offset_tics == 3:
             canvas.addstr(row, column, symbol)
             await count_delay(0.3)
-            offset_tic = 0
+            offset_tics = 0
 
 
 def create_stars_parameters(signs, max_y, max_x, stars_number):
     star_params = []
     for _ in range(stars_number):
-        generated_x = random.randint(1, max_x - 1)
-        generated_y = random.randint(1, max_y - 1)
-        chosen_sign = random.choice(signs)
-        star_params.append([generated_y, generated_x, chosen_sign])
+        row = random.randint(1, max_x - 1)
+        column = random.randint(1, max_y - 1)
+        symbol = random.choice(signs)
+        star_params.append([row, column, symbol])
     return star_params
 
 
