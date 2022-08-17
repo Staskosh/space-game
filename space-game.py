@@ -5,8 +5,6 @@ import random
 import time
 from itertools import cycle
 
-from dotenv import load_dotenv
-
 from curses_tools import draw_frame, get_frame_size, read_controls
 
 TIC_TIMEOUT = 0.1
