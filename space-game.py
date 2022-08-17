@@ -1,5 +1,6 @@
 import asyncio
 import curses
+import itertools
 import os
 import random
 import time
@@ -71,10 +72,12 @@ def create_stars_parameters(signs, max_y, max_x, stars_number):
 
 def get_animations(animations_directory):
     animations = []
+    animation_numbers = 2
     for filename in os.listdir(animations_directory):
         with open(f'{animations_directory}/{filename}', 'r', encoding='KOI8-R') as file:
             animation = file.read()
-        animations.append(animation)
+        for animation_number in range(animation_numbers):
+            animations.append(animation)
 
     return animations
 
