@@ -98,14 +98,14 @@ def draw(canvas):
         canvas, animations, border, height, width, row=start_row, column=start_column
     ))
     while True:
-        try:
-            for coroutine in coroutines.copy():
-                canvas.border()
+        for coroutine in coroutines.copy():
+            try:
                 coroutine.send(None)
-            canvas.refresh()
-            time.sleep(TIC_TIMEOUT)
-        except StopIteration:
-            coroutines.remove(coroutine)
+            except StopIteration:
+                coroutines.remove(coroutine)
+        canvas.border()
+        canvas.refresh()
+        time.sleep(TIC_TIMEOUT)
 
 
 def main():
