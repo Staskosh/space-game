@@ -102,14 +102,13 @@ def draw(canvas):
             for coroutine in coroutines.copy():
                 canvas.border()
                 coroutine.send(None)
-                canvas.refresh()
+            canvas.refresh()
+            time.sleep(TIC_TIMEOUT)
         except StopIteration:
             coroutines.remove(coroutine)
-        time.sleep(TIC_TIMEOUT)
 
 
 def main():
-    load_dotenv()
     curses.update_lines_cols()
     curses.wrapper(draw)
 
