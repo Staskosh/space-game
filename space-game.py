@@ -1,6 +1,5 @@
 import asyncio
 import curses
-import itertools
 import os
 import random
 import time
@@ -9,6 +8,36 @@ from itertools import cycle
 from curses_tools import draw_frame, get_frame_size, read_controls
 
 TIC_TIMEOUT = 0.1
+
+
+async def fill_orbit_with_garbage(canvas, coroutines, garbage_animations):
+    rows_number, columns_number = canvas.getmaxyx()
+    while True:
+        coroutines.append(
+            fly_garbage(
+                canvas,
+                column=random.randint(0, columns_number),
+                garbage_frame=random.choice(garbage_animations),
+                speed=random.randint(1, 2)
+            )
+        )
+        await count_delay(0.3)
+
+
+async def fly_garbage(canvas, column, garbage_frame, speed):
+    """Animate garbage, flying from top to bottom. Сolumn position will stay same, as specified on start."""
+    rows_number, columns_number = canvas.getmaxyx()
+
+    column = max(column, 0)
+    column = min(column, columns_number - 1)
+
+    row = 0
+
+    while row < rows_number:
+        draw_frame(canvas, row, column, garbage_frame)
+        await asyncio.sleep(0)
+        draw_frame(canvas, row, column, garbage_frame, negative=True)
+        row += speed
 
 
 async def count_delay(seconds):
@@ -70,9 +99,8 @@ def create_stars_parameters(signs, max_y, max_x, stars_number):
     return star_params
 
 
-def get_animations(animations_directory):
+def get_animations(animations_directory, animation_numbers):
     animations = []
-    animation_numbers = 2
     for filename in os.listdir(animations_directory):
         with open(f'{animations_directory}/{filename}', 'r', encoding='KOI8-R') as file:
             animation = file.read()
@@ -85,6 +113,7 @@ def get_animations(animations_directory):
 def draw(canvas):
     border = 1
     animations_directory = 'animation_files'
+    garbage_animations = 'animation_garbage'
     curses.curs_set(False)
     canvas.nodelay(True)
     height, width = canvas.getmaxyx()  # getmaxyx returns the height, width of window
@@ -93,12 +122,13 @@ def draw(canvas):
     star_params = create_stars_parameters(signs, height, width, stars_number)
     coroutines = [blink(canvas, row, column, symbol, random.randint(0, 3))
                   for row, column, symbol in star_params]
-
-    animations = get_animations(animations_directory)
+    garbage_animations = get_animations(garbage_animations, 1)
+    coroutines.append(fill_orbit_with_garbage(canvas, coroutines, garbage_animations))
+    spaceship_animations = get_animations(animations_directory, 2)
     start_row = height // 3
     start_column = width // 2
     coroutines.append(animate_spaceship(
-        canvas, animations, border, height, width, row=start_row, column=start_column
+        canvas, spaceship_animations, border, height, width, row=start_row, column=start_column
     ))
     while True:
         for coroutine in coroutines.copy():
